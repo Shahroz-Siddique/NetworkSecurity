@@ -37,13 +37,17 @@ class DataIngestion:
             collection=self.mongo_client[database_name][collection_name]
 
             df=pd.DataFrame(list(collection.find()))
+            print(f"DEBUG: Loaded {df.shape[0]} records from {database_name}.{collection_name}")
+            if df.empty:
+                raise ValueError(f"No data found in MongoDB collection: {database_name}.{collection_name}")
+
             if "_id" in df.columns.to_list():
                 df=df.drop(columns=["_id"],axis=1)
             
             df.replace({"na":np.nan},inplace=True)
             return df
         except Exception as e:
-            raise NetworkSecurityException
+            raise NetworkSecurityException(e,sys)
         
     def export_data_into_feature_store(self,dataframe: pd.DataFrame):
         try:
@@ -98,4 +102,4 @@ class DataIngestion:
             return dataingestionartifact
 
         except Exception as e:
-            raise NetworkSecurityException
+            raise NetworkSecurityException(e,sys)
